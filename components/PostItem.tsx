@@ -13,7 +13,6 @@ function formatAbsoluteTime(dateString: string, isUpdate: boolean) {
   const min = String(date.getMinutes()).padStart(2, '0');
   const ampm = date.getHours() >= 12 ? 'PM' : 'AM';
   
-  // Example output: "26/04/20 PM 19:35 작성" or "26/04/20 PM 19:35 수정"
   return `${yy}/${mm}/${dd} ${ampm} ${hh}:${min} ${isUpdate ? '수정' : '작성'}`;
 }
 
@@ -25,42 +24,38 @@ const colorStyles: Record<string, string> = {
   purple: "bg-purple-100 border-purple-200 hover:border-purple-300",
 };
 
-export default function PostItem({ post }: { post: any }) {
+export default function PostItem({ post, keywords }: { post: any, keywords: any[] }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging
-  } = useSortable({ id: post.id });
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: post.id });
 
-  const style = {
-    transform: CSS.Translate.toString(transform),
-    transition,
-    zIndex: isDragging ? 10 : 1,
-  };
-
+  const style = { transform: CSS.Translate.toString(transform), transition, zIndex: isDragging ? 10 : 1 };
   const bgStyle = colorStyles[post.color] || colorStyles.yellow;
   
-  // Decide display time
   const targetDate = post.updated_at ? post.updated_at : post.created_at;
   const isUpdate = !!post.updated_at;
+  
+  // Find keyword name for this post
+  const keywordObj = keywords.find(k => k.id === post.keyword_id);
+  const keywordName = keywordObj ? keywordObj.name : '기타';
 
   return (
     <>
       <div 
         ref={setNodeRef} 
         style={style} 
-        className={`${bgStyle} ${isDragging ? 'shadow-xl scale-[1.02]' : 'shadow-sm'} p-5 rounded-2xl border flex flex-col gap-3 group relative transition-all`}
+        className={`${bgStyle} ${isDragging ? 'shadow-xl scale-[1.02]' : 'shadow-sm'} p-5 rounded-2xl border flex flex-col gap-3 group relative transition-all min-h-[160px]`}
       >
         <div className="flex justify-between items-start gap-3">
-          <h4 className="font-bold text-lg text-slate-900 leading-tight block break-all">{post.title}</h4>
+          <div className="flex flex-col items-start gap-1">
+            {/* 태그 표시 */}
+            <span className="text-[10px] font-bold bg-white/50 px-2 py-0.5 rounded text-slate-600 border border-black/5 shadow-sm">
+              #{keywordName}
+            </span>
+            <h4 className="font-bold text-lg text-slate-900 leading-tight block break-all">{post.title}</h4>
+          </div>
           
           <div className="flex items-center gap-1 sm:opacity-0 group-hover:opacity-100 transition-opacity">
-            {/* Drag Handle */}
             <button 
               type="button" 
               {...attributes} 
@@ -70,7 +65,6 @@ export default function PostItem({ post }: { post: any }) {
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="12" r="1"/><circle cx="9" cy="5" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="19" r="1"/></svg>
             </button>
-            {/* Manage button */}
             <button 
               type="button" 
               onClick={() => setIsModalOpen(true)}
@@ -92,7 +86,7 @@ export default function PostItem({ post }: { post: any }) {
       </div>
       
       {isModalOpen && (
-        <ManagePostModal post={post} onClose={() => setIsModalOpen(false)} />
+        <ManagePostModal post={post} keywords={keywords} onClose={() => setIsModalOpen(false)} />
       )}
     </>
   );

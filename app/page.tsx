@@ -1,43 +1,45 @@
-import PostList from "@/components/PostList";
+import Header from "@/components/Header";
 import CreatePostForm from "@/components/CreatePostForm";
 import SearchInput from "@/components/SearchInput";
-import { getPosts } from "@/lib/supabase/actions";
+import PostList from "@/components/PostList";
+import { getPosts, getKeywords } from "@/lib/supabase/actions";
 
-export const dynamic = 'force-dynamic';
-
-export default async function Home(props: { searchParams: Promise<{ [key: string]: string | undefined }> }) {
-  const searchParams = await props.searchParams;
-  const q = searchParams?.q;
-  const posts = await getPosts(q);
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; keyword?: string }>;
+}) {
+  const { q, keyword } = await searchParams;
+  
+  const [posts, keywords] = await Promise.all([
+    getPosts(q, keyword),
+    getKeywords()
+  ]);
 
   return (
-    <div className="flex flex-col gap-8 py-4 sm:py-6">
-      <section className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-3xl font-extrabold tracking-tight text-slate-900">모두의 메모장</h2>
-          <p className="mt-2 text-slate-500">어떤 이야기라도 자유롭게 남겨보세요. 모든 글은 즉시 공유됩니다.</p>
+    <div className="flex flex-col gap-6 md:gap-8">
+      {/* 1. Main Search & Filtering Area */}
+      <section className="flex flex-col gap-5 mt-2">
+        <div className="flex items-center justify-between gap-4 flex-wrap w-full">
+          <div className="flex items-center gap-2 text-slate-600 font-medium">
+            <span className="bg-amber-100/60 text-amber-800 px-3 py-1.5 rounded-full text-sm border border-amber-200">총 {posts?.length || 0}개의 메모</span>
+          </div>
+          <div className="flex-1 flex justify-end min-w-[280px]">
+            <SearchInput initialQuery={q || ""} currentKeyword={keyword || ""} keywords={keywords || []} />
+          </div>
+        </div>
+
+        <div className="bg-white/40 backdrop-blur-md rounded-3xl p-4 sm:p-6 shadow-sm border border-white/50">
+          <PostList posts={posts || []} keywords={keywords || []} />
         </div>
       </section>
 
-      <section className="w-full">
-        <div className="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-slate-200">
-          <h3 className="text-lg font-bold mb-4 text-slate-800 flex items-center gap-2">
-            <span>✍️</span> 새 글 작성하기
-          </h3>
-          <CreatePostForm />
-        </div>
-      </section>
-
-      <section className="w-full flex sm:flex-row flex-col justify-between items-start sm:items-center gap-4 bg-slate-100 rounded-xl p-4 border border-slate-200">
-        <div className="flex items-center gap-2 px-1">
-          <span className="text-slate-600 font-semibold">현재 등록된 메모</span>
-          <span className="bg-blue-100 text-blue-700 px-2.5 py-0.5 rounded-full text-sm font-bold">{posts.length}</span>
-        </div>
-        <SearchInput defaultQuery={q || ""} />
-      </section>
-
-      <section className="w-full">
-        <PostList posts={posts} />
+      {/* 2. Create Post Form Area */}
+      <section className="bg-white/60 backdrop-blur-md rounded-3xl p-6 sm:p-8 shadow-sm border border-white/80">
+        <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+          <span className="text-2xl">📝</span> 새 글 작성하기
+        </h2>
+        <CreatePostForm keywords={keywords || []} />
       </section>
     </div>
   );

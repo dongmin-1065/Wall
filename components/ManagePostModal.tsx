@@ -10,7 +10,7 @@ const COLORS = [
   { id: 'purple', hex: 'bg-purple-100' },
 ];
 
-export default function ManagePostModal({ post, onClose }: { post: any, onClose: () => void }) {
+export default function ManagePostModal({ post, keywords, onClose }: { post: any, keywords: any[], onClose: () => void }) {
   const [mode, setMode] = useState<'edit' | 'delete'>('edit');
   
   const [editState, editAction, isEditPending] = useActionState(
@@ -28,7 +28,7 @@ export default function ManagePostModal({ post, onClose }: { post: any, onClose:
   );
 
   useEffect(() => {
-    if (editState?.success || deleteState?.success) {
+    if ((editState && 'success' in editState) || (deleteState && 'success' in deleteState)) {
       onClose();
     }
   }, [editState, deleteState, onClose]);
@@ -44,17 +44,29 @@ export default function ManagePostModal({ post, onClose }: { post: any, onClose:
         </div>
 
         {mode === 'edit' ? (
-          <form action={editAction} className="p-6 flex flex-col gap-4">
+          <form action={editAction} className="p-5 flex flex-col gap-3">
             <input type="hidden" name="id" value={post.id} />
-            <label className="flex flex-col gap-1.5 text-sm font-semibold text-slate-600">
-              제목
-              <input name="title" defaultValue={post.title} required className="p-2.5 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-100" />
-            </label>
-            <label className="flex flex-col gap-1.5 text-sm font-semibold text-slate-600">
+            
+            <div className="flex gap-2 w-full">
+              {/* 수정 시 폼에도 카테고리 태그 추가 */}
+              <label className="flex flex-col w-32 shrink-0 gap-1 text-sm font-semibold text-slate-600">
+                분류
+                <select name="keyword_id" defaultValue={post.keyword_id || ''} required className="p-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-100 bg-white">
+                  <option value="" disabled>선택</option>
+                  {keywords.map(k => <option key={k.id} value={k.id}>{k.name}</option>)}
+                </select>
+              </label>
+              <label className="flex flex-col flex-1 gap-1 text-sm font-semibold text-slate-600">
+                제목
+                <input name="title" defaultValue={post.title} required className="p-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-100" />
+              </label>
+            </div>
+            
+            <label className="flex flex-col gap-1 text-sm font-semibold text-slate-600">
               내용
-              <textarea name="content" defaultValue={post.content} required rows={3} className="p-2.5 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-100 resize-none" />
+              <textarea name="content" defaultValue={post.content} required rows={3} className="p-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-100 resize-none" />
             </label>
-            <div className="flex flex-col gap-1.5 text-sm font-semibold text-slate-600">
+            <div className="flex flex-col gap-1 text-sm font-semibold text-slate-600">
               색상
               <div className="flex gap-3">
                 {COLORS.map(c => (
@@ -65,14 +77,14 @@ export default function ManagePostModal({ post, onClose }: { post: any, onClose:
                 ))}
               </div>
             </div>
-            <label className="flex flex-col gap-1.5 text-sm font-semibold text-slate-600 pt-2 border-t border-slate-100 mt-2">
+            <label className="flex flex-col gap-1 text-sm font-semibold text-slate-600 pt-2 border-t border-slate-100 mt-1">
               비밀번호 인증
-              <input type="password" name="password" required placeholder="작성 시 입력한 비밀번호" className="p-2.5 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-100" />
+              <input type="password" name="password" required placeholder="작성 시 입력한 비밀번호" className="p-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-100" />
             </label>
             
             {editState?.error && <p className="text-red-500 text-sm mt-1">{editState.error}</p>}
             
-            <div className="flex justify-end gap-2 mt-2">
+            <div className="flex justify-end gap-2 mt-1">
               <button type="button" onClick={onClose} disabled={isPending} className="px-5 py-2 bg-slate-100 text-slate-700 font-bold rounded-lg hover:bg-slate-200 transition-colors">취소</button>
               <button type="submit" disabled={isPending} className="px-5 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-colors">{isPending ? '처리중...' : '수정 완료'}</button>
             </div>

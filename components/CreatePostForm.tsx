@@ -10,7 +10,7 @@ const COLORS = [
   { id: 'purple', hex: 'bg-purple-100', label: '보라' },
 ];
 
-export default function CreatePostForm() {
+export default function CreatePostForm({ keywords }: { keywords: any[] }) {
   const [state, action, isPending] = useActionState(async (prevState: any, formData: FormData) => {
     return await createPost(formData);
   }, null);
@@ -18,6 +18,15 @@ export default function CreatePostForm() {
   return (
     <form action={action} className="flex flex-col gap-4">
       <div className="flex flex-col sm:flex-row gap-4">
+        {/* 키워드 셀렉트 (NEW) */}
+        <label className="flex flex-col sm:w-48 gap-1.5 focus-within:text-blue-600 transition-colors">
+          <span className="text-sm font-semibold text-slate-600 inherit">분류</span>
+          <select name="keyword_id" defaultValue="" required className="w-full rounded-lg border-slate-200 p-3 text-slate-900 border focus:ring-2 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all cursor-pointer bg-white">
+            <option value="" disabled>선택해주세요</option>
+            {keywords.map(k => <option key={k.id} value={k.id}>{k.name}</option>)}
+          </select>
+        </label>
+        
         <label className="flex flex-col flex-1 gap-1.5 focus-within:text-blue-600 transition-colors">
           <span className="text-sm font-semibold text-slate-600 inherit">제목</span>
           <input 
@@ -28,20 +37,20 @@ export default function CreatePostForm() {
             className="w-full rounded-lg border-slate-200 p-3 text-slate-900 border focus:ring-2 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all placeholder:text-slate-400" 
           />
         </label>
+        
         <label className="flex flex-col sm:w-48 gap-1.5 focus-within:text-blue-600 transition-colors">
-          <span className="text-sm font-semibold text-slate-600 inherit">비밀번호 (수정/삭제용)</span>
+          <span className="text-sm font-semibold text-slate-600 inherit">비밀번호</span>
           <input 
             name="password"
             required 
             type="password" 
-            placeholder="단순한 비밀번호" 
+            placeholder="수정/삭제용" 
             className="w-full rounded-lg border-slate-200 p-3 text-slate-900 border focus:ring-2 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all placeholder:text-slate-400" 
           />
         </label>
       </div>
 
-      {/* Colour Picker */}
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-2 mt-1">
         <span className="text-sm font-semibold text-slate-600">포스트잇 색상</span>
         <div className="flex items-center gap-3">
           {COLORS.map(color => (
@@ -53,7 +62,7 @@ export default function CreatePostForm() {
         </div>
       </div>
 
-      <label className="flex flex-col gap-1.5 focus-within:text-blue-600 transition-colors">
+      <label className="flex flex-col gap-1.5 focus-within:text-blue-600 transition-colors mt-1">
         <span className="text-sm font-semibold text-slate-600 inherit">내용</span>
         <textarea 
           name="content"
